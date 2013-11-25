@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">{app_name}Debug</string>
+    <string name="content_provider_authority">{package_name}.DEBUG</string>
+</resources>

@@ -1,0 +1,36 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="{package_name}"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-sdk android:minSdkVersion="16" android:targetSdkVersion="19" />
+
+    <application android:allowBackup="true"
+        android:label="@string/app_name"
+        android:icon="@drawable/ic_launcher"
+        android:theme="@style/AppTheme.Overlay"
+        android:name=".{app_class_prefix}App">
+
+        <activity android:name=".activity.MainActivity"
+                  android:screenOrientation="portrait"
+                android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <provider
+                android:authorities="@string/content_provider_authority"
+                android:name=".data.{app_class_prefix}ContentProvider" />
+
+        <receiver android:name=".receiver.ApiBroadcastReceiver"/>
+
+        <service android:name=".service.ApiExecutorService"/>
+    </application>
+
+</manifest>
