@@ -163,10 +163,12 @@ def main():
 	parser.add_argument('compile_sdk_version', metavar='COMPILE_SDK_VERSION', type=int, help="Sdk version to use to compile the app. Eg 19")
 	parser.add_argument('min_sdk_version', metavar='MIN_SDK_VERSION', type=int, help="Minimum sdk version the app targets. Eg 14")
 	parser.add_argument('target_sdk_version', metavar='TARGET_SDK_VERSION', type=int, help="Target sdk version the app targets. Eg 19")
+	parser.add_argument('-d', '--output_directory', metavar='OUTPUT_DIR', help="Output direct for the generated project")
+
 
 	args = parser.parse_args()
 	create_app(args.app_name, args.package_name, args.app_class_prefix, 
-		args.compile_sdk_version, args.min_sdk_version, args.target_sdk_version)
+		args.compile_sdk_version, args.min_sdk_version, args.target_sdk_version, args.output_directory)
 	
 
 if __name__ == '__main__':
