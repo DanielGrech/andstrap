@@ -11,9 +11,6 @@ import javax.inject.Inject;
  */
 public class DaoUtils {
 
-    @Inject
-    protected static ForecastDao sForecastDao;
-
     public static ContentValues convert(Object obj) {
         IDao dao = getDao(obj.getClass());
         return dao.convert(obj);

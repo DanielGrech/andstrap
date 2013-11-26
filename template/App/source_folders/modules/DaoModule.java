@@ -1,6 +1,5 @@
 package {package_name}.modules;
 
-import {package_name}.dao.ForecastDao;
 import {package_name}.util.DaoUtils;
 import dagger.Module;
 import dagger.Provides;
@@ -12,7 +11,7 @@ import javax.inject.Singleton;
  */
 @Module(
         staticInjections = {
-                DaoUtils.class
+                // DaoUtils.class
         }
 )
 public class DaoModule {
