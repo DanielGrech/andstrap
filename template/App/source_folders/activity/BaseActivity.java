@@ -15,7 +15,7 @@ import static {package_name}.service.ApiExecutorService.AsyncRequest;
 /**
  * Base class for all activities in the app
  */
-public class BaseActivity extends Activity {
+public abstract class BaseActivity extends Activity {
     @Inject
     protected Bus mEventBus;
 

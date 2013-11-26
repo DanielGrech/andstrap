@@ -12,7 +12,7 @@ import javax.inject.Inject;
 /**
  * Base class for all fragments in the app
  */
-public class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment {
 
     @Inject
     protected Bus mEventBus;
