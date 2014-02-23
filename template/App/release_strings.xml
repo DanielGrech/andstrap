@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">{app_name}Release</string>
-    <string name="content_provider_authority">{package_name}.RELEASE</string>
+    <string name="content_provider_authority">{package_name}.release</string>
 </resources>

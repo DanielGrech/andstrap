@@ -2,7 +2,7 @@ package {package_name}.activity;
 
 import android.os.Bundle;
 import android.view.MotionEvent;
-import butterknife.Views;
+import butterknife.ButterKnife;
 import {package_name}.R;
 import {package_name}.service.ApiExecutorService;
 import com.squareup.otto.Subscribe;
@@ -23,7 +23,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.act_main);
 
-        Views.inject(this);
+        ButterKnife.inject(this);
 
 
         // mHasMadeRequest = savedInstanceState == null ?

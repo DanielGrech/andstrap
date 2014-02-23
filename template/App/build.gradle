@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
 apply plugin: 'android'
@@ -16,18 +16,18 @@ def appPackageName = "{package_name}"
 
 android {
     compileSdkVersion {compile_sdk_version}
-    buildToolsVersion "19.0.0"
+    buildToolsVersion '19.0.1'
+
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+    }
 
     defaultConfig {
         minSdkVersion {min_sdk_version}
         targetSdkVersion {target_sdk_version}
         packageName appPackageName
 
-        buildConfig """\
-            public static enum BuildType {
-                DEBUG, RELEASE
-            }
-        """
+        buildConfigField "String", "CONTENT_AUTHORITY", "\"${appPackageName}.\" + BUILD_TYPE"
     }
 
     compileOptions {
@@ -35,25 +35,19 @@ android {
         targetCompatibility JavaVersion.VERSION_1_7
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     buildTypes {
         debug {
             packageNameSuffix '.debug'
             versionNameSuffix '-debug'
-
-            buildConfig """
-                public static final BuildType TYPE = BuildType.DEBUG;
-                public static final String CONTENT_AUTHORITY = "${appPackageName}." + TYPE.name();
-            """
         }
 
         release {
             packageNameSuffix '.release'
             versionNameSuffix '-release'
-
-            buildConfig """
-                public static final BuildType TYPE = BuildType.RELEASE;
-                public static final String CONTENT_AUTHORITY = "${appPackageName}." + TYPE.name();
-            """
         }
     }
 
@@ -62,12 +56,12 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:+'
     compile 'com.jakewharton.timber:timber:2.0.+'
-    compile 'com.squareup.dagger:dagger-compiler:1.1.+'
-    compile 'com.squareup.dagger:dagger:1.1.+'
+    compile 'com.squareup.dagger:dagger-compiler:1.2.+'
+    compile 'com.squareup.dagger:dagger:1.2.+'
     compile 'com.squareup:otto:1.3.+'
-    compile 'com.jakewharton:butterknife:3.0.+'
+    compile 'com.jakewharton:butterknife:4.0.+'
     compile 'com.squareup.okhttp:okhttp:1.2.+'
-    compile 'com.squareup.retrofit:retrofit:1.2.+'
+    compile 'com.squareup.retrofit:retrofit:1.4.+'
     compile 'com.google.code.gson:gson:2.2.+'
     compile fileTree(dir: '../libs', include: '*.jar')
 
