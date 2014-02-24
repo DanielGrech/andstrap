@@ -7,10 +7,11 @@ import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import {package_name}.R;
-import {package_name}.service.ApiExecutorService;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import static {package_name}.jobs.Constants.*;
 
 /**
  * Catches broadcasts sent at different lifecycle events
@@ -49,9 +50,9 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
      */
     public void register(Context context) {
         final IntentFilter filter = new IntentFilter();
-        filter.addAction(ApiExecutorService.ACTION_API_START);
-        filter.addAction(ApiExecutorService.ACTION_API_FINISH);
-        filter.addAction(ApiExecutorService.ACTION_API_ERROR);
+        filter.addAction(ACTION_API_START);
+        filter.addAction(ACTION_API_FINISH);
+        filter.addAction(ACTION_API_ERROR);
         LocalBroadcastManager.getInstance(context).registerReceiver(this, filter);
     }
 
@@ -81,15 +82,15 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        final String token = intent.getStringExtra(ApiExecutorService.EXTRA_TOKEN);
+        final String token = intent.getStringExtra(EXTRA_TOKEN);
         if (action != null && token != null && mAcceptableTokens.contains(token)) {
             switch (action) {
-                case ApiExecutorService.ACTION_API_START:
+                case ACTION_API_START:
                     mRunningCounter++;
                     onStart(action);
                     break;
 
-                case ApiExecutorService.ACTION_API_FINISH:
+                case ACTION_API_FINISH:
                     mRunningCounter--;
                     if (mRunningCounter < 0) {
                         mRunningCounter = 0;
@@ -98,8 +99,8 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
                     onFinish(action);
                     break;
 
-                case ApiExecutorService.ACTION_API_ERROR:
-                    String errorMsg = intent.getStringExtra(ApiExecutorService.EXTRA_ERROR_MESSAGE);
+                case ACTION_API_ERROR:
+                    String errorMsg = intent.getStringExtra(EXTRA_ERROR_MESSAGE);
                     if (TextUtils.isEmpty(errorMsg)) {
                         errorMsg = context.getString(R.string.unknown_error);
                     }

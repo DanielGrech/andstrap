@@ -24,10 +24,6 @@
         <provider
                 android:authorities="@string/content_provider_authority"
                 android:name=".data.{app_class_prefix}ContentProvider" />
-
-        <receiver android:name=".receiver.ApiBroadcastReceiver"/>
-
-        <service android:name=".service.ApiExecutorService"/>
     </application>
 
 </manifest>

@@ -63,6 +63,7 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:1.2.+'
     compile 'com.squareup.retrofit:retrofit:1.4.+'
     compile 'com.google.code.gson:gson:2.2.+'
+    compile 'com.path:android-priority-jobqueue:1.1.+'
     compile fileTree(dir: '../libs', include: '*.jar')
 
     instrumentTestCompile 'org.easytesting:fest-assert-core:2.0M10'

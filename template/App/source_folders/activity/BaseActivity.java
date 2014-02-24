@@ -10,8 +10,6 @@ import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
 
-import static {package_name}.service.ApiExecutorService.AsyncRequest;
-
 /**
  * Base class for all activities in the app
  */
@@ -29,18 +27,18 @@ public abstract class BaseActivity extends Activity {
         @Override
         protected void onStart(final String token) {
             setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
-            onApiRequestStart(token);
+            onJobRequestStart(token);
         }
 
         @Override
         protected void onFinish(final String token) {
             setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
-            onApiRequestFinish(token);
+            onJobRequestFinish(token);
         }
 
         @Override
         protected void onError(final String token, final String errorMsg) {
-            onApiRequestError(token, errorMsg);
+            onJobRequestError(token, errorMsg);
         }
     };
 
@@ -66,15 +64,15 @@ public abstract class BaseActivity extends Activity {
         mApiReceiver.unregister(this);
     }
 
-    protected void onApiRequestStart(String action) {
+    protected void onJobRequestStart(String action) {
         //No-op
     }
 
-    protected void onApiRequestFinish(String action) {
+    protected void onJobRequestFinish(String action) {
         //No-op
     }
 
-    protected void onApiRequestError(String action, String errorMsg) {
+    protected void onJobRequestError(String action, String errorMsg) {
         //No-op
     }
 
@@ -83,7 +81,7 @@ public abstract class BaseActivity extends Activity {
      *
      * @param token The token returned from a method in {@link AsyncRequest}
      */
-    protected void registerForApi(String token) {
+    protected void registerForJob(String token) {
         mApiReceiver.addAcceptableToken(token);
     }
 

@@ -1,5 +1,6 @@
 package {package_name}.modules;
 
+import android.content.Context;
 import {package_name}.{app_class_prefix}App;
 import dagger.Module;
 import dagger.Provides;
@@ -19,7 +20,8 @@ public class AppModule {
     }
 
     @Provides
-    public {app_class_prefix}App providesApp() {
+    @ForApplication
+    public Context providesApplicationContext() {
         return mApp;
     }
 }
