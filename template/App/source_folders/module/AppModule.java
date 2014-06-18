@@ -2,6 +2,8 @@ package {package_name}.module;
 
 import android.content.Context;
 import {package_name}.{app_class_prefix}App;
+import {package_name}.module.annotation.ForApplication
+
 import dagger.Module;
 import dagger.Provides;
 
