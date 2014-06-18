@@ -3,8 +3,10 @@ package {package_name}.activity;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.Window;
 import {package_name}.{app_class_prefix}App;
+import {package_name}.jobs.BaseJob;
 import {package_name}.receiver.ApiBroadcastReceiver;
 import com.squareup.otto.Bus;
 
@@ -14,7 +16,7 @@ import javax.inject.Inject;
  * Base class for all activities in the app
  */
 public abstract class BaseActivity extends Activity {
-    
+
     @Inject
     protected Bus mEventBus;
 
@@ -24,21 +26,22 @@ public abstract class BaseActivity extends Activity {
      * Catches API-related broadcasts
      */
     private ApiBroadcastReceiver mApiReceiver = new ApiBroadcastReceiver() {
+
         @Override
-        protected void onStart(final String token) {
-            setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
-            onJobRequestStart(token);
+        protected <T extends BaseJob> void onStart(Class<T> jobCls, String token) {
+//            setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
+            onJobRequestStart(jobCls, token);
         }
 
         @Override
-        protected void onFinish(final String token) {
-            setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
-            onJobRequestFinish(token);
+        protected <T extends BaseJob> void onFinish(Class<T> jobCls, String token, Bundle results) {
+//            setProgressBarIndeterminateVisibility(getRunningCounter() > 0);
+            onJobRequestFinish(jobCls, token, results);
         }
 
         @Override
-        protected void onError(final String token, final String errorMsg) {
-            onJobRequestError(token, errorMsg);
+        protected <T extends BaseJob> void onError(Class<T> jobCls, String token, String errorMsg) {
+            onJobRequestError(jobCls, token, errorMsg);
         }
     };
 
@@ -64,25 +67,41 @@ public abstract class BaseActivity extends Activity {
         mApiReceiver.unregister(this);
     }
 
-    protected void onJobRequestStart(String action) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    protected <T extends BaseJob> void onJobRequestStart(Class<T> cls, String action) {
         //No-op
     }
 
-    protected void onJobRequestFinish(String action) {
+    protected <T extends BaseJob> void onJobRequestFinish(Class<T> cls, String action,
+                                                          Bundle results) {
         //No-op
     }
 
-    protected void onJobRequestError(String action, String errorMsg) {
+    protected <T extends BaseJob> void onJobRequestError(
+            Class<T> cls, String action, String errorMsg) {
         //No-op
     }
 
     /**
      * Listen out for API broadcasts of type <code>token</code>
      *
-     * @param token The token returned from a method in {@link AsyncRequest}
+     * @param token The token returned from a method in {@link {package_name}.jobs.BaseJob}
      */
     protected void registerForJob(String token) {
         mApiReceiver.addAcceptableToken(token);
+    }
+
+    protected <T extends BaseJob> void registerForJobClass(Class<T> cls) {
+        mApiReceiver.addAcceptableJobType(cls);
     }
 
     /**

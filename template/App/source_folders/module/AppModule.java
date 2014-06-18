@@ -1,4 +1,4 @@
-package {package_name}.modules;
+package {package_name}.module;
 
 import android.content.Context;
 import {package_name}.{app_class_prefix}App;

@@ -1,4 +1,4 @@
-package {package_name}.modules;
+package {package_name}.module.annotation;
 
 import java.lang.annotation.Retention;
 import javax.inject.Qualifier;

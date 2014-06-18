@@ -36,7 +36,7 @@ class TemplateWriter():
 
 		base_app_folder = self.__app_base_folder()
 
-		base_test_folder = join(base_app_folder, 'src/instrumentTest/java')
+		base_test_folder = join(base_app_folder, 'src/androidTest/java')
 		base_source_folder = join(base_app_folder, 'src/main/java')
 		base_res_folder = join(base_app_folder, 'src/main/res')
 
@@ -86,6 +86,8 @@ class TemplateWriter():
 				if filepath in ['template/.gitignore', 'template/build.gradle', 'template/settings.gradle']:
 					self.__copy_files(self.output_folder, {f})
 				elif filepath == 'template/App/build.gradle':
+					shutil.copyfile(filepath, join(base_app_folder, f))
+				elif filepath == 'template/App/gradle.properties':
 					shutil.copyfile(filepath, join(base_app_folder, f))
 				elif filepath == 'template/App/AndroidManifest.xml':
 					shutil.copyfile(filepath, join(join(base_app_folder, 'src/main'), f))

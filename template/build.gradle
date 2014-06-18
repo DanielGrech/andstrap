@@ -1,1 +1,9 @@
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.12'
+}
+
+ext {
+    compileSdkVersion = {compile_sdk_version}
+    buildToolsVersion = '19.1'
+}

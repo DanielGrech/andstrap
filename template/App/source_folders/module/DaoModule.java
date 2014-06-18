@@ -1,4 +1,4 @@
-package {package_name}.modules;
+package {package_name}.module;
 
 import {package_name}.util.DaoUtils;
 import dagger.Module;

@@ -1,10 +1,11 @@
-package {package_name}.modules;
+package {package_name}.module;
 
 import android.content.ContentResolver;
 import android.content.Context;
 import android.support.v4.content.LocalBroadcastManager;
 import {package_name}.BuildConfig;
 import {package_name}.{app_class_prefix}App;
+import {package_name}.module.annotation.ForApplication;
 import com.path.android.jobqueue.BaseJob;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.JobManager;
@@ -14,6 +15,10 @@ import com.path.android.jobqueue.log.CustomLogger;
 import dagger.Module;
 import dagger.Provides;
 import timber.log.Timber;
+import com.squareup.otto.Bus;
+import com.squareup.otto.ThreadEnforcer;
+
+import {package_name}.activity.MainActivity;
 
 import javax.inject.Singleton;
 
@@ -24,10 +29,16 @@ import javax.inject.Singleton;
         complete = false,
         library = true,
         injects = {
-
+            MainActivity.class,
         }
 )
 public class AppServicesModule {
+
+    @Provides
+    @Singleton
+    public Bus providesBus() {
+        return new Bus(ThreadEnforcer.ANY);
+    }
 
     @Provides
     @Singleton

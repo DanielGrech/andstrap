@@ -1,9 +1,13 @@
 package {package_name};
 
+import android.app.Activity;
 import android.app.Application;
-import {package_name}.modules.AppModule;
-import {package_name}.modules.DaoModule;
-import {package_name}.modules.OttoModule;
+import android.os.Bundle;
+
+import {package_name}.module.AppModule;
+import {package_name}.module.AppServicesModule;
+import {package_name}.module.ApiModule;
+import {package_name}.module.DaoModule;
 import {package_name}.util.ReleaseLogger;
 import dagger.ObjectGraph;
 import timber.log.Timber;
@@ -11,9 +15,14 @@ import timber.log.Timber;
 /**
  * 
  */
-public class {app_class_prefix}App extends Application {
+public class {app_class_prefix}App extends Application implements Application.ActivityLifecycleCallbacks {
 
     private ObjectGraph mObjectGraph;
+
+    /**
+     * The number of activities the app is showing
+     */
+    private int mActivityCounter = 0;
 
     @Override
     public void onCreate() {
@@ -28,6 +37,8 @@ public class {app_class_prefix}App extends Application {
 
         mObjectGraph = ObjectGraph.create(getDiModules());
         mObjectGraph.injectStatics();
+
+        registerActivityLifecycleCallbacks(this);
     }
 
     /**
@@ -36,8 +47,9 @@ public class {app_class_prefix}App extends Application {
     private Object[] getDiModules() {
         return new Object[]{
                 new AppModule(this),
-                new OttoModule(),
-                new DaoModule()
+                new AppServicesModule(),
+                new ApiModule(),
+                new DaoModule(),
         };
     }
 
@@ -53,5 +65,48 @@ public class {app_class_prefix}App extends Application {
             og = mObjectGraph.plus(extraModules);
         }
         og.inject(obj);
+    }
+
+    /**
+     * @return <code>true</code> if the app has at least 1 activity visible,
+     * <code>false otherwise</code>
+     */
+    public boolean isAppInForeground() {
+        return mActivityCounter > 0;
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+    }
+
+    @Override
+    public void onActivityStarted(Activity activity) {
+        mActivityCounter++;
+    }
+
+    @Override
+    public void onActivityResumed(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityPaused(Activity activity) {
+
+    }
+
+    @Override
+    public void onActivityStopped(Activity activity) {
+        mActivityCounter = Math.max(0, mActivityCounter - 1);
+    }
+
+    @Override
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+    }
+
+    @Override
+    public void onActivityDestroyed(Activity activity) {
+
     }
 }

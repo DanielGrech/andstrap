@@ -4,9 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import {package_name}.R;
+import {package_name}.jobs.BaseJob;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,33 +17,41 @@ import static {package_name}.jobs.Constants.*;
 
 /**
  * Catches broadcasts sent at different lifecycle events
- * of Api requests as executed by {@link {package_name}.service.ApiExecutorService}
+ * of Api requests as executed by {@link {package_name}.jobs.BaseJob}
  */
 public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
 
     private Set<String> mAcceptableTokens = new HashSet<>();
 
+    private Set<String> mAcceptableJobClasses = new HashSet<>();
+
     /**
      * Called when a new API request has started
      *
-     * @param token The kind of request being executed
+     * @param jobCls The class of the job
+     * @param token  The kind of request being executed
      */
-    protected abstract void onStart(String token);
+    protected abstract <T extends BaseJob> void onStart(Class<T> jobCls, String token);
 
     /**
      * Called when an API request has finished
      *
-     * @param token The kind of request that finished
+     * @param jobCls  The class of the job
+     * @param token   The kind of request that finished
+     * @param results Results passed back from the job
      */
-    protected abstract void onFinish(String token);
+    protected abstract <T extends BaseJob> void onFinish(Class<T> jobCls, String token,
+                                                         Bundle results);
 
     /**
      * Called when there is an error with an API request
      *
+     * @param jobCls   The class of the job
      * @param token    The kind of request which caused an error
      * @param errorMsg The human-readable error message representing the problem
      */
-    protected abstract void onError(String token, String errorMsg);
+    protected abstract <T extends BaseJob> void onError(
+            Class<T> jobCls, String token, String errorMsg);
 
     /**
      * Start listening for API events
@@ -74,6 +84,10 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
         mAcceptableTokens.add(token);
     }
 
+    public <T extends BaseJob> void addAcceptableJobType(Class<T> cls) {
+        mAcceptableJobClasses.add(cls.getName());
+    }
+
     /**
      * Reference counter for the number of requests currently executing
      */
@@ -83,11 +97,22 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
         final String token = intent.getStringExtra(EXTRA_TOKEN);
-        if (action != null && token != null && mAcceptableTokens.contains(token)) {
+        final String className = intent.getStringExtra(EXTRA_CLASS_NAME);
+        final Bundle results = intent.getBundleExtra(EXTRA_RESULTS);
+
+        if (action != null && token != null &&
+                (mAcceptableTokens.contains(token) || mAcceptableJobClasses.contains(className))) {
+
+            Class<? extends BaseJob> cls = null;
+            try {
+                cls = (Class<? extends BaseJob>) Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                cls = null;
+            }
             switch (action) {
                 case ACTION_API_START:
                     mRunningCounter++;
-                    onStart(action);
+                    onStart(cls, action);
                     break;
 
                 case ACTION_API_FINISH:
@@ -96,7 +121,7 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
                         mRunningCounter = 0;
                     }
 
-                    onFinish(action);
+                    onFinish(cls, action, results);
                     break;
 
                 case ACTION_API_ERROR:
@@ -105,7 +130,7 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
                         errorMsg = context.getString(R.string.unknown_error);
                     }
 
-                    onError(action, errorMsg);
+                    onError(cls, action, errorMsg);
 
                     break;
             }
@@ -119,3 +144,4 @@ public abstract class ApiBroadcastReceiver extends BroadcastReceiver {
         return mRunningCounter;
     }
 }
+

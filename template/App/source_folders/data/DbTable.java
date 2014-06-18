@@ -1,17 +1,15 @@
 package {package_name}.data;
 
 import android.text.TextUtils;
-
+ 
 /**
- * Represents a database table in the app.
- *
- * Also contains useful helper methods for table construction
+ * Database table definitions used throughout the app
  */
 public class DbTable {
  
     final String mName;
     final DbField[] mFields;
-    final String[] mCustomScripts;
+    final DbIndex[] mIndexes;
  
     String[] mFieldNames;
  
@@ -35,7 +33,7 @@ public class DbTable {
      *         Columns to create as part of the table
      */
     private DbTable(String n, DbField[] f) {
-        this(n, f, (String[]) null);
+        this(n, f, (DbIndex[]) null);
     }
  
     /**
@@ -43,13 +41,13 @@ public class DbTable {
      *         The name of the table
      * @param f
      *         Columns to create as part of the table
-     * @param cs
-     *         Extra SQL which should be run after the table is created (such as constraints to enforce)
+     * @param indexes
+     *         Indexes to create on this table
      */
-    private DbTable(String n, DbField[] f, String... cs) {
+    private DbTable(String n, DbField[] f, DbIndex... indexes) {
         mName = n;
         mFields = f;
-        mCustomScripts = cs;
+        mIndexes = indexes;
     }
  
     public String getName() {
@@ -96,7 +94,15 @@ public class DbTable {
      * @return Any custom SQL scripts which should be executed after this table is created
      */
     public String[] getPostCreateSql() {
-        return mCustomScripts;
+        if (mIndexes == null || mIndexes.length == 0) {
+            return null;
+        } else {
+            String[] sql = new String[mIndexes.length];
+            for (int i = 0, len = mIndexes.length; i < len; i++) {
+                sql[i] = mIndexes[i].getCreateSql(mName);
+            }
+            return sql;
+        }
     }
  
     /**
@@ -135,7 +141,7 @@ public class DbTable {
  
         private final String mTableName;
         private DbField[] mColumns;
-        private String[] mScripts;
+        private DbIndex[] mIndexes;
  
         /**
          * Construct a new builder for a table named <code>tableName</code>
@@ -167,13 +173,13 @@ public class DbTable {
         /**
          * Set the columns which will be created on the new table
          *
-         * @param customScripts
-         *         The scripts to be run on this table <i>after</i> it has been created
+         * @param indexes
+         *         The indexes to create on this table
          *
          * @return <code>this</code> object (for chaining)
          */
-        public Builder scripts(String... customScripts) {
-            mScripts = customScripts;
+        public Builder indexes(DbIndex... indexes) {
+            mIndexes = indexes;
             return this;
         }
  
@@ -185,7 +191,7 @@ public class DbTable {
                 throw new IllegalStateException("Cant create without setting columns");
             }
  
-            return new DbTable(mTableName, mColumns, mScripts);
+            return new DbTable(mTableName, mColumns, mIndexes);
         }
     }
 }

@@ -1,14 +1,22 @@
 package {package_name}.jobs;
 
+import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import com.path.android.jobqueue.Job;
 import com.path.android.jobqueue.Params;
+import {package_name}.BuildConfig;
 import {package_name}.api.IApiManager;
 import {package_name}.api.IPersistenceManager;
+import {package_name}.module.annotation.ForApplication;
+
+
+import java.util.UUID;
 
 import javax.inject.Inject;
-import java.util.UUID;
+
+import timber.log.Timber;
 
 import static {package_name}.jobs.Constants.*;
 
@@ -32,7 +40,7 @@ public abstract class BaseJob extends Job {
     @Inject
     transient IPersistenceManager mPersistenceManager;
 
-    protected abstract void runJob();
+    protected abstract Bundle runJob() throws Throwable;
 
     public BaseJob(Params params) {
         super(params);
@@ -46,15 +54,15 @@ public abstract class BaseJob extends Job {
 
     @Override
     public void onRun() throws Throwable {
-        sendStartBroadcast(mToken);
-        runJob();
-        sendFinishBroadcast(mToken);
+        sendStartBroadcast();
+        final Bundle results = runJob();
+        sendFinishBroadcast(results);
     }
 
     @Override
     protected void onCancel() {
-        sendErrorBroadcast(mToken, null);
-        sendFinishBroadcast(mToken);
+        sendErrorBroadcast(null);
+        sendFinishBroadcast(null);
     }
 
     @Override
@@ -62,25 +70,30 @@ public abstract class BaseJob extends Job {
         // Override in subclasses to differentiate between errors.
         // For example, if this was an Authentication exception,
         // there would be much point in continuing unless we re-authenticate
+        Timber.e(throwable, "Error executing job " + getClass().getSimpleName());
+
         return true;
     }
 
-    private void sendStartBroadcast(String token) {
-        Intent intent = new Intent(ACTION_API_START);
-        intent.putExtra(EXTRA_TOKEN, token);
+    @Override
+    protected int getRetryLimit() {
+        return BuildConfig.DEFAULT_JOB_RETRY_LIMIT;
+    }
+
+    private void sendStartBroadcast() {
+        Intent intent = getIntentForAction(ACTION_API_START);
         broadcast(intent);
     }
 
-    private void sendFinishBroadcast(String token) {
-        Intent intent = new Intent(ACTION_API_FINISH);
-        intent.putExtra(EXTRA_TOKEN, token);
+    private void sendFinishBroadcast(Bundle results) {
+        Intent intent = getIntentForAction(ACTION_API_FINISH);
+        intent.putExtra(EXTRA_RESULTS, results);
         broadcast(intent);
     }
 
-    private void sendErrorBroadcast(String token, String errorMessage) {
-        final Intent intent = new Intent(ACTION_API_ERROR);
+    private void sendErrorBroadcast(String errorMessage) {
+        final Intent intent = getIntentForAction(ACTION_API_ERROR);
         intent.putExtra(EXTRA_ERROR_MESSAGE, errorMessage);
-        intent.putExtra(EXTRA_TOKEN, token);
         broadcast(intent);
     }
 
@@ -91,4 +104,13 @@ public abstract class BaseJob extends Job {
     public String getToken() {
         return mToken;
     }
+
+    private Intent getIntentForAction(String action) {
+        final Intent intent = new Intent(action);
+        intent.putExtra(EXTRA_TOKEN, mToken);
+        intent.putExtra(EXTRA_CLASS_NAME, getClass().getName());
+
+        return intent;
+    }
 }
+
