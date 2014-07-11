@@ -72,7 +72,7 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:+'
+    compile 'com.android.support:support-v4:20.+'
     compile 'com.jakewharton.timber:timber:2.0.+'
     compile 'com.squareup.dagger:dagger-compiler:1.2.+'
     compile 'com.squareup.dagger:dagger:1.2.+'
@@ -81,7 +81,6 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:1.6.+'
     compile 'com.squareup.retrofit:retrofit:1.6.+'
     compile 'com.google.code.gson:gson:2.2.+'
-    compile 'com.koushikdutta.ion:ion:1.2.+'
     compile 'com.path:android-priority-jobqueue:1.1.+'
     compile fileTree(dir: '../libs', include: '*.jar')
 

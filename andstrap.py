@@ -135,7 +135,7 @@ class TemplateWriter():
 	            shutil.copy2(s, d)
 
 	def __app_base_folder(self):
-		return join(self.output_folder, self.app_name)
+		return join(self.output_folder, 'app')
 
 	def create(self):
 		self.__create_output_folder()
