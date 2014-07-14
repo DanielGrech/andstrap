@@ -4,23 +4,35 @@ import argparse
 import sys
 import os
 import shutil
+import json
 from os.path import join
 
+class Config:
+	def __init__(self, configJson):
+		self.app_name = configJson.get('app_name')
+		self.app_prefix = configJson.get('app_prefix')
+		self.package_name = configJson.get('package_name')
+		self.compile_sdk = configJson.get('compile_sdk')
+		self.target_sdk = configJson.get('target_sdk')
+		self.min_sdk = configJson.get('min_sdk')
+		# self. = configJson.get('')
+		# self. = configJson.get('')
+		# self. = configJson.get('')
+		# self. = configJson.get('')
+
+
 class TemplateWriter():
-	def __init__(self, app_name, package_name, app_class_prefix, 
-		compile_sdk_version, min_sdk_version, target_sdk_version, output_folder):
-		self.app_name = app_name
-		self.package_name = package_name
+	def __init__(self, config, output_folder):
+		self.config = config
 		self.output_folder = output_folder
-		self.app_class_prefix = app_class_prefix
 
 		self.replacements = {
-			'{app_name}' : app_name,
-			'{package_name}' : package_name,
-			'{app_class_prefix}' : app_class_prefix,
-			'{compile_sdk_version}' : compile_sdk_version,
-	        '{min_sdk_version}' : min_sdk_version,
-	        '{target_sdk_version}' : target_sdk_version,
+			'{app_name}' : config.app_name,
+			'{package_name}' : config.package_name,
+			'{app_class_prefix}' : config.app_prefix,
+			'{compile_sdk_version}' : config.compile_sdk,
+	        '{min_sdk_version}' : config.min_sdk,
+	        '{target_sdk_version}' : config.target_sdk,
 		}
 
 	def __create_output_folder(self):
@@ -28,7 +40,7 @@ class TemplateWriter():
 
 	def __create_readme(self):
 		f = open(join(self.output_folder, 'README.md'), 'w')
-		f.write(self.app_name + '\n=========')
+		f.write(self.config.app_name + '\n=========')
 		f.close()
 
 	def __create_folder_structure(self):
@@ -40,7 +52,7 @@ class TemplateWriter():
 		base_source_folder = join(base_app_folder, 'src/main/java')
 		base_res_folder = join(base_app_folder, 'src/main/res')
 
-		packge_path = self.package_name.split('.')
+		packge_path = self.config.package_name.split('.')
 
 		package_folder = base_source_folder
 		release_package_folder = join(base_app_folder, 'src/release/java')
@@ -70,7 +82,7 @@ class TemplateWriter():
 		base_source_folder = join(base_app_folder, 'src/main/java/')
 
 		package_folder = base_source_folder
-		packge_path = self.package_name.split('.')
+		packge_path = self.config.package_name.split('.')
 		for folder in packge_path:
 			package_folder = join(package_folder, folder)
 
@@ -97,11 +109,11 @@ class TemplateWriter():
 					shutil.copyfile(filepath, join(base_app_folder, 'src/debug/res/values/strings.xml'))
 
 		#Rename android.app.Application Subclass
-		os.rename(join(package_folder, 'App.java'), join(package_folder, self.app_class_prefix + 'App.java'))
+		os.rename(join(package_folder, 'App.java'), join(package_folder, self.config.app_prefix + 'App.java'))
 
 		#Rename our ContentProvider
 		data_folder = join(package_folder, 'data')
-		os.rename(join(data_folder, 'AppContentProvider.java'), join(data_folder, self.app_class_prefix + 'ContentProvider.java'))
+		os.rename(join(data_folder, 'AppContentProvider.java'), join(data_folder, self.config.app_prefix + 'ContentProvider.java'))
 
 
 
@@ -144,33 +156,30 @@ class TemplateWriter():
 		self.__copy_source_files()
 		self.__run_replacement()
 
-
-
-
-def create_app(app_name, package_name, app_class_prefix, 
-	compile_sdk_version, min_sdk_version, target_sdk_version, output_folder=None):
+def create_app(config, output_folder = None):
 	if output_folder is None:
 		output_folder = app_name + 'Project'
 
-	template = TemplateWriter(app_name, package_name, app_class_prefix, 
-		compile_sdk_version, min_sdk_version, target_sdk_version, output_folder)
+	template = TemplateWriter(Config(config), output_folder)
 	template.create()
-
 
 def main():
 	parser = argparse.ArgumentParser(description='Create an Android App skeleton')
-	parser.add_argument('app_name', metavar='APP_NAME', help='the name of the generated application')
-	parser.add_argument('package_name', metavar='PACKAGE', help='the name of the generated package')
-	parser.add_argument('app_class_prefix', metavar='PREFIX', help="prefix for import classes. Eg 'Weather' for WeatherApp and WeatherContentProvider")
-	parser.add_argument('compile_sdk_version', metavar='COMPILE_SDK_VERSION', type=int, help="Sdk version to use to compile the app. Eg 19")
-	parser.add_argument('min_sdk_version', metavar='MIN_SDK_VERSION', type=int, help="Minimum sdk version the app targets. Eg 14")
-	parser.add_argument('target_sdk_version', metavar='TARGET_SDK_VERSION', type=int, help="Target sdk version the app targets. Eg 19")
+
+	parser.add_argument('config_file', nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="App config file")
+
+	# parser.add_argument('app_name', metavar='APP_NAME', help='the name of the generated application')
+	# parser.add_argument('package_name', metavar='PACKAGE', help='the name of the generated package')
+	# parser.add_argument('app_class_prefix', metavar='PREFIX', help="prefix for import classes. Eg 'Weather' for WeatherApp and WeatherContentProvider")
+	# parser.add_argument('compile_sdk_version', metavar='COMPILE_SDK_VERSION', type=int, help="Sdk version to use to compile the app. Eg 19")
+	# parser.add_argument('min_sdk_version', metavar='MIN_SDK_VERSION', type=int, help="Minimum sdk version the app targets. Eg 14")
+	# parser.add_argument('target_sdk_version', metavar='TARGET_SDK_VERSION', type=int, help="Target sdk version the app targets. Eg 19")
 	parser.add_argument('-d', '--output_directory', metavar='OUTPUT_DIR', help="Output direct for the generated project")
 
-
 	args = parser.parse_args()
-	create_app(args.app_name, args.package_name, args.app_class_prefix, 
-		args.compile_sdk_version, args.min_sdk_version, args.target_sdk_version, args.output_directory)
+	config = json.loads(args.config_file.read())
+
+	create_app(config, args.output_directory)
 	
 
 if __name__ == '__main__':

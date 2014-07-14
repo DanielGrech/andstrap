@@ -1,0 +1,8 @@
+{
+	"app_name" : "TestApp",
+	"app_prefix" : "TA",
+	"package_name" : "com.example.android.app",
+	"compile_sdk" : "19",
+	"target_sdk" : "19",
+	"min_sdk" : "14"
+}

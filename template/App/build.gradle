@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.11.+'
+        classpath 'com.android.tools.build:gradle:' + androidGradlePluginVersion
     }
 }
 apply plugin: 'android'
@@ -22,30 +22,37 @@ def gitSha() {
     return 'git rev-parse --short HEAD'.execute().text.trim()
 }
 
-def versionMajor = 1
-def versionMinor = 0
-def versionPatch = 0
-def versionBuild = 0
+def whoami() {
+    def whoami = 'whoami'.execute().text
+    return whoami == null ? '' : whoami.trim();
+}
+
+def appVersionName = "${appVersionMajor}.${appVersionMinor}.${appVersionPatch}"
+def appVersionCode = appVersionMajor * 10000 + appVersionMinor * 1000 + appVersionPatch * 100
 
 def appPackageName = "{package_name}"
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion androidBuildToolsVersion
 
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
 
     defaultConfig {
-        minSdkVersion {min_sdk_version}
-        targetSdkVersion {target_sdk_version}
+        minSdkVersion androidMinSdkVersion
+        targetSdkVersion androidTargetSdkVersion
         applicationId appPackageName
-        versionCode versionMajor * 10000 + versionMinor * 1000 + versionPatch * 100 + versionBuild
-        versionName "${versionMajor}.${versionMinor}.${versionPatch}"
+        versionCode appVersionCode
+        versionName appVersionName
 
+        buildConfigField "boolean", "IS_RELEASE", "BUILD_TYPE.equals(\"release\")"
         buildConfigField "String", "CONTENT_AUTHORITY", "\"${appPackageName}.\" + BUILD_TYPE"
         buildConfigField "int", "DEFAULT_JOB_RETRY_LIMIT", "${defaultJobRetryLimit}"
+        buildConfigField "String", "GIT_SHA", "\"${gitSha()}\""
+        buildConfigField "String", "BUILD_TIME", "\"${buildTime()}\""
+        buildConfigField "String", "BUILDER", "\"${username()}\""
     }
 
     compileOptions {
@@ -66,6 +73,13 @@ android {
         release {
             applicationIdSuffix '.release'
             versionNameSuffix '-release'
+
+            applicationVariants.all { variant ->
+                def file = variant.outputFile
+                def newName = file.name.replace(".apk",
+                        "-${defaultConfig.versionCode}-${buildTime()}-${username()}-${gitSha()}.apk")
+                variant.outputFile = new File(file.parent, newName)
+            }
         }
     }
 
