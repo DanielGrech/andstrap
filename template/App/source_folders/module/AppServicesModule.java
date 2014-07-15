@@ -3,8 +3,11 @@ package {package_name}.module;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.support.v4.content.LocalBroadcastManager;
+import {package_name}.Analytics;
+import {package_name}.IAnalytics;
 import {package_name}.BuildConfig;
 import {package_name}.{app_class_prefix}App;
+import {package_name}.fragment.AppDrawerFragment;
 import {package_name}.module.annotation.ForApplication;
 import com.path.android.jobqueue.BaseJob;
 import com.path.android.jobqueue.Job;
@@ -17,6 +20,7 @@ import dagger.Provides;
 import timber.log.Timber;
 import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
+import com.google.android.gms.analytics.GoogleAnalytics;
 
 import {package_name}.activity.MainActivity;
 
@@ -29,10 +33,18 @@ import javax.inject.Singleton;
         complete = false,
         library = true,
         injects = {
+            AppDrawerFragment.class,
+
             MainActivity.class,
         }
 )
 public class AppServicesModule {
+
+    @Provides
+    @Singleton
+    public IAnalytics providesAnalytics(@ForApplication Context context) {
+        return new Analytics(GoogleAnalytics.getInstance(context));
+    }
 
     @Provides
     @Singleton

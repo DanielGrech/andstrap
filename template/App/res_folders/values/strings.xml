@@ -2,4 +2,6 @@
     <string name="app_name">{app_name}</string>
     <string name="content_provider_authority">{package_name}</string>
     <string name="unknown_error">Unknown error</string>
+    <string name="drawer_open">Open navigation</string>
+    <string name="drawer_close">Close navigation</string>
 </resources>

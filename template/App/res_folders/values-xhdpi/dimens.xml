@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="app_menu_list_item_color_display_width">4dp</dimen>
+</resources>

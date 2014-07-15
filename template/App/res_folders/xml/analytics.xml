@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- TODO! -->
+    <string name="ga_trackingId"></string>
+
+    <bool name="ga_autoActivityTracking">true</bool>
+
+    <bool name="ga_reportUncaughtExceptions">true</bool>
+
+    <screenName name="{package_name}.activity.MainActivity">Main</screenName>
+
+</resources>

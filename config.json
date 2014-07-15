@@ -4,5 +4,25 @@
 	"package_name" : "com.example.android.app",
 	"compile_sdk" : "19",
 	"target_sdk" : "19",
-	"min_sdk" : "14"
+	"min_sdk" : "14",
+
+	"colors" : {
+		"primary" : "#FF0000",
+		"secondary" : "#00FF00"
+	},
+
+	"app_drawer" : [
+		{
+			"name" : "Feature A",
+			"is_major" : "true"	
+		},
+		{
+			"name" : "Feature B",
+			"is_major" : "true"	
+		},
+		{
+			"name" : "Settings",
+			"is_major" : "false"	
+		}
+	]
 }

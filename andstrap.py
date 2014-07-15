@@ -5,20 +5,79 @@ import sys
 import os
 import shutil
 import json
+import urllib
+import zipfile
 from os.path import join
 
+HOLO_COLORS_TEMPLATE_URL = 'http://android-holo-colors.com/generate_all.php?origin=web&color=%s&holo=light_dark_action_bar&name=%s&kitkat=1&minsdk=holo&compat=compat&edittext=true&text_handle=true&autocomplete=true&button=true&checkbox=true&radio=true&progressbar=true&list=true&fastscroll=true&switchjb=true'
+
+def generate_app_drawer_enum_code(item_list):
+	enum_code = ''
+	for index, (name, is_major) in enumerate(item_list):
+		enum_code += '%s(%s)' % (name, is_major)
+		if index == len(item_list) - 1:
+			enum_code += ';'
+		else :
+			enum_code += ',\n\t'
+
+	return enum_code
+
+def generate_app_drawer_switch_code(item_list):
+	switch_code = ''
+	for (name, is_major) in item_list:
+		switch_code += '\tcase %s:\n\t\t' % (name)
+		switch_code += 'break;\n'
+
+	return switch_code
+
+def merge_holo_generator_assets(color, theme_name):
+	zip_name = '/tmp/holo_colors.zip'
+	unzip_folder = '/tmp'
+	unzip_target = unzip_folder + '/res'
+
+	if os.path.isfile(zip_name):
+		os.remove(zip_name)
+
+	url = HOLO_COLORS_TEMPLATE_URL % (color, theme_name)
+	urllib.urlretrieve(url, zip_name)
+
+	if os.path.isfile(unzip_target):
+		shutil.rmtree(unzip_target)
+	with zipfile.ZipFile(zip_name) as zf:
+		zf.extractall(unzip_folder)
+
+	if os.path.isfile(zip_name):
+		os.remove(zip_name)
+
+	return unzip_target
+
+class Colors:
+	def __init__(self):
+		self.primary = '#FF0000'
+		self.secondary = '#00FF00'
+
 class Config:
-	def __init__(self, configJson):
-		self.app_name = configJson.get('app_name')
-		self.app_prefix = configJson.get('app_prefix')
-		self.package_name = configJson.get('package_name')
-		self.compile_sdk = configJson.get('compile_sdk')
-		self.target_sdk = configJson.get('target_sdk')
-		self.min_sdk = configJson.get('min_sdk')
-		# self. = configJson.get('')
-		# self. = configJson.get('')
-		# self. = configJson.get('')
-		# self. = configJson.get('')
+	def __init__(self, config_json):
+		self.app_name = config_json.get('app_name')
+		self.app_prefix = config_json.get('app_prefix')
+		self.package_name = config_json.get('package_name')
+		self.compile_sdk = config_json.get('compile_sdk')
+		self.target_sdk = config_json.get('target_sdk')
+		self.min_sdk = config_json.get('min_sdk')
+
+		if 'app_drawer' in config_json:
+			drawer_items_array = config_json.get('app_drawer')
+			self.app_drawer = [
+				(item.get('name').replace(' ', '_').upper(), item.get('is_major')) for item in drawer_items_array
+			]
+
+		self.colors = Colors()
+		if 'colors' in config_json:
+			colors_json = config_json.get('colors')
+			if 'primary' in colors_json:
+				self.colors.primary = colors_json.get('primary')
+			if 'secondary' in colors_json:
+				self.colors.secondary = colors_json.get('secondary')
 
 
 class TemplateWriter():
@@ -33,6 +92,10 @@ class TemplateWriter():
 			'{compile_sdk_version}' : config.compile_sdk,
 	        '{min_sdk_version}' : config.min_sdk,
 	        '{target_sdk_version}' : config.target_sdk,
+	        '{color_primary}' : config.colors.primary,
+	        '{color_secondary}' : config.colors.secondary,
+	        '{app_drawer_enum_code}' : "" if config.app_drawer is None else generate_app_drawer_enum_code(config.app_drawer),
+	        '{app_drawer_switch_code}' : "" if config.app_drawer is None else generate_app_drawer_switch_code(config.app_drawer)
 		}
 
 	def __create_output_folder(self):
@@ -46,7 +109,7 @@ class TemplateWriter():
 	def __create_folder_structure(self):
 		self.__create_folder(join(self.output_folder, 'libs'))
 
-		base_app_folder = self.__app_base_folder()
+		base_app_folder = self.app_base_folder()
 
 		base_test_folder = join(base_app_folder, 'src/androidTest/java')
 		base_source_folder = join(base_app_folder, 'src/main/java')
@@ -77,7 +140,7 @@ class TemplateWriter():
 	def __copy_source_files(self):
 		files = []
 
-		base_app_folder = self.__app_base_folder()
+		base_app_folder = self.app_base_folder()
 		base_res_folder = join(base_app_folder, 'src/main/res/')
 		base_source_folder = join(base_app_folder, 'src/main/java/')
 
@@ -89,9 +152,9 @@ class TemplateWriter():
 		for root, dirs, files in os.walk('template/'):
 			for d in dirs:
 				if d == 'res_folders':
-					self.__copytree(join(root, d), base_res_folder)
+					self.copytree(join(root, d), base_res_folder)
 				elif d == 'source_folders':
-					self.__copytree(join(root, d), package_folder)
+					self.copytree(join(root, d), package_folder)
 					
 			for f in files:
 				filepath = join(root, f)
@@ -137,7 +200,7 @@ class TemplateWriter():
 		for f in files:
 			shutil.copyfile('template/' + f, join(output_base, f))
 
-	def __copytree(self, src, dst, symlinks=False, ignore=None):
+	def copytree(self, src, dst, symlinks=False, ignore=None):
 	    for item in os.listdir(src):
 	        s = os.path.join(src, item)
 	        d = os.path.join(dst, item)
@@ -146,7 +209,7 @@ class TemplateWriter():
 	        else:
 	            shutil.copy2(s, d)
 
-	def __app_base_folder(self):
+	def app_base_folder(self):
 		return join(self.output_folder, 'app')
 
 	def create(self):
@@ -156,12 +219,32 @@ class TemplateWriter():
 		self.__copy_source_files()
 		self.__run_replacement()
 
+def generate_holo_colors(template, config):
+	holo_colors_folder = merge_holo_generator_assets(config.colors.primary.replace('#', ''), config.app_name.lower())
+	if holo_colors_folder:
+		base_folder = template.app_base_folder()
+		base_res_folder = join(base_folder, 'src/main/res')
+
+		resources = {}
+		for root, dirs, files in os.walk(holo_colors_folder):
+			for d in dirs:
+				if d.startswith('drawable') or d.startswith('values'):
+					folderpath = join(root, d)
+					print folderpath
+					template.copytree(folderpath, join(base_res_folder, d))
+
+		shutil.rmtree(holo_colors_folder)
+
 def create_app(config, output_folder = None):
 	if output_folder is None:
 		output_folder = app_name + 'Project'
 
-	template = TemplateWriter(Config(config), output_folder)
+	c = Config(config)
+	template = TemplateWriter(c, output_folder)
 	template.create()
+
+	generate_holo_colors(template, c)
+
 
 def main():
 	parser = argparse.ArgumentParser(description='Create an Android App skeleton')
@@ -178,7 +261,6 @@ def main():
 
 	args = parser.parse_args()
 	config = json.loads(args.config_file.read())
-
 	create_app(config, args.output_directory)
 	
 

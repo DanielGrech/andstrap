@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+	{holo_color_colors}
+	<color name="primary">{color_primary}</color>
+	<color name="secondary">{color_secondary}</color>
+	<color name="ab_color">@color/primary</color>
     <color name="translucent_black">#AA000000</color>
     <color name="light_text">#BCBCBC</color>
-    <color name="dark_text">#333333</color>
+    <color name="border_color">#EDEDED</color>
+    <color name="dark_text">#555555</color>
 
 </resources>

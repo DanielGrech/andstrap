@@ -2,15 +2,25 @@ package {package_name}.activity;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import {package_name}.IAnalytics;
+import {package_name}.R;
 import {package_name}.{app_class_prefix}App;
 import {package_name}.jobs.BaseJob;
 import {package_name}.receiver.ApiBroadcastReceiver;
+import {package_name}.util.UiUtils;
+import {package_name}.util.Api;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
+
+import timber.log.Timber;
 
 /**
  * Base class for all activities in the app
@@ -19,6 +29,11 @@ public abstract class BaseActivity extends Activity {
 
     @Inject
     protected Bus mEventBus;
+
+    @Inject
+    protected IAnalytics mAnalytics;
+
+    protected SystemBarTintManager mTintManager;
 
     protected {app_class_prefix}App mApp;
 
@@ -50,6 +65,8 @@ public abstract class BaseActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
+        mTintManager = new SystemBarTintManager(this);
 
         mApp = ({app_class_prefix}App) getApplication();
         mApp.inject(this);
@@ -111,5 +128,52 @@ public abstract class BaseActivity extends Activity {
      */
     protected <T extends Fragment> T findFragment(int id) {
         return (T) getFragmentManager().findFragmentById(id);
+    }
+
+    public int getNavigationBarAffordance() {
+        if (!Api.isMin(Api.KITKAT) || UiUtils.isTablet(this) ||
+                !getResources().getBoolean(R.bool.is_portrait) ||
+                !mTintManager.getConfig().hasNavigtionBar()) {
+            return 0;
+        } else {
+            return mTintManager.getConfig().getNavigationBarHeight();
+        }
+    }
+
+    protected void setupTintManagerForViews(boolean clipTop, boolean clipBottom, View... views) {
+        setupTintManagerForViews(this, mTintManager, clipTop, clipBottom, views);
+    }
+
+    static void setupTintManagerForViews(Context context,
+                                         SystemBarTintManager tintManager,
+                                         boolean clipTop, boolean clipBottom,
+                                         View... views) {
+        if (Api.isMin(Api.KITKAT) && views != null) {
+            tintManager.setTintColor(context.getResources().getColor(R.color.ab_color));
+
+            if (clipTop) {
+                tintManager.setStatusBarTintEnabled(true);
+            }
+
+            for (View v : views) {
+                ViewGroup.LayoutParams lps = v.getLayoutParams();
+                if (lps instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams layoutParams
+                            = (ViewGroup.MarginLayoutParams) lps;
+
+                    if (clipTop) {
+                        layoutParams.topMargin = tintManager.getConfig().getPixelInsetTop(true);
+                    }
+
+                    if (clipBottom) {
+                        layoutParams.bottomMargin = tintManager.getConfig().getPixelInsetBottom();
+                    }
+
+                    v.setLayoutParams(layoutParams);
+                } else {
+                    Timber.w("Could not apply tint to view: " + v);
+                }
+            }
+        }
     }
 }

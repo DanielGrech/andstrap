@@ -1,10 +1,13 @@
 package {package_name}.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.os.Bundle;
+import {package_name}.IAnalytics;
 import {package_name}.{app_class_prefix}App;
+import {package_name}.activity.BaseActivity;
 import com.squareup.otto.Bus;
 
 import javax.inject.Inject;
@@ -16,6 +19,19 @@ public abstract class BaseFragment extends Fragment {
 
     @Inject
     protected Bus mEventBus;
+
+    @Inject
+    protected IAnalytics mAnalytics;
+
+    @Override
+    public void onAttach(Activity activity) {
+        if (activity instanceof BaseActivity) {
+            super.onAttach(activity);
+        } else {
+            throw new IllegalStateException(
+                    "Expected to be attached to a BaseActivity");
+        }
+    }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
@@ -38,5 +54,9 @@ public abstract class BaseFragment extends Fragment {
         } else {
             getLoaderManager().restartLoader(loaderId, null, callbacks);
         }
+    }
+
+    protected BaseActivity getBaseActivity() {
+        return (BaseActivity) getActivity();
     }
 }

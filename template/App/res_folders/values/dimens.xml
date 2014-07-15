@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="default_padding">16dp</dimen>
+    <dimen name="app_drawer_width">260dp</dimen>
+    <dimen name="app_drawer_major_text_size">18sp</dimen>
+    <dimen name="app_drawer_minor_text_size">14sp</dimen>
+    <dimen name="app_menu_list_item_color_display_width">2dp</dimen>
 </resources>
