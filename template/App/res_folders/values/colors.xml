@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	{holo_color_colors}
 	<color name="primary">{color_primary}</color>
 	<color name="secondary">{color_secondary}</color>
 	<color name="ab_color">@color/primary</color>
