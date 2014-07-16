@@ -64,6 +64,7 @@ class Config:
 		self.compile_sdk = config_json.get('compile_sdk')
 		self.target_sdk = config_json.get('target_sdk')
 		self.min_sdk = config_json.get('min_sdk')
+		self.theme = config_json.get('theme')
 
 		if 'app_drawer' in config_json:
 			drawer_items_array = config_json.get('app_drawer')
@@ -92,6 +93,7 @@ class TemplateWriter():
 			'{compile_sdk_version}' : config.compile_sdk,
 	        '{min_sdk_version}' : config.min_sdk,
 	        '{target_sdk_version}' : config.target_sdk,
+	        '{parent_theme}' : config.theme
 	        '{color_primary}' : config.colors.primary,
 	        '{color_secondary}' : config.colors.secondary,
 	        '{app_drawer_enum_code}' : "" if config.app_drawer is None else generate_app_drawer_enum_code(config.app_drawer),
@@ -219,6 +221,9 @@ class TemplateWriter():
 		self.__copy_source_files()
 		self.__run_replacement()
 
+def generate_action_bar_colors(template, config):
+	holo_colors_folder
+
 def generate_holo_colors(template, config):
 	holo_colors_folder = merge_holo_generator_assets(config.colors.primary.replace('#', ''), config.app_name.lower())
 	if holo_colors_folder:
@@ -244,6 +249,7 @@ def create_app(config, output_folder = None):
 	template.create()
 
 	generate_holo_colors(template, c)
+	generate_action_bar_colors(template, c)
 
 
 def main():

@@ -5,6 +5,7 @@
 	"compile_sdk" : "19",
 	"target_sdk" : "19",
 	"min_sdk" : "14",
+	"theme" : "android:Theme.Holo.Light.DarkActionBar"
 
 	"colors" : {
 		"primary" : "#FF0000",
