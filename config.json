@@ -2,28 +2,30 @@
 	"app_name" : "TestApp",
 	"app_prefix" : "TA",
 	"package_name" : "com.example.android.app",
-	"compile_sdk" : "19",
-	"target_sdk" : "19",
-	"min_sdk" : "14",
-	"theme" : "android:Theme.Holo.Light.DarkActionBar"
+	"compile_sdk" : 19,
+	"target_sdk" : 19,
+	"min_sdk" : 14,
+	"theme" : "android:Theme.Holo.Light.DarkActionBar",
+	"holo_colors" : true,
+	"action_bar_colors" : false,
 
 	"colors" : {
-		"primary" : "#FF0000",
-		"secondary" : "#00FF00"
+		"primary" : "#9F53C6",
+		"secondary" : "#FF8900"
 	},
 
 	"app_drawer" : [
 		{
 			"name" : "Feature A",
-			"is_major" : "true"	
+			"is_major" : true	
 		},
 		{
 			"name" : "Feature B",
-			"is_major" : "true"	
+			"is_major" : true	
 		},
 		{
 			"name" : "Settings",
-			"is_major" : "false"	
+			"is_major" : false
 		}
 	]
 }

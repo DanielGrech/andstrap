@@ -10,11 +10,12 @@ import zipfile
 from os.path import join
 
 HOLO_COLORS_TEMPLATE_URL = 'http://android-holo-colors.com/generate_all.php?origin=web&color=%s&holo=light_dark_action_bar&name=%s&kitkat=1&minsdk=holo&compat=compat&edittext=true&text_handle=true&autocomplete=true&button=true&checkbox=true&radio=true&progressbar=true&list=true&fastscroll=true&switchjb=true'
+ACTION_BAR_COLORS_TEMPLATE_URL = '%s%s'
 
 def generate_app_drawer_enum_code(item_list):
 	enum_code = ''
 	for index, (name, is_major) in enumerate(item_list):
-		enum_code += '%s(%s)' % (name, is_major)
+		enum_code += '%s(%s)' % (name, str(is_major).lower())
 		if index == len(item_list) - 1:
 			enum_code += ';'
 		else :
@@ -30,7 +31,28 @@ def generate_app_drawer_switch_code(item_list):
 
 	return switch_code
 
-def merge_holo_generator_assets(color, theme_name):
+def get_action_bar_color_assets(color, theme_name):
+	zip_name = '/tmp/ab_colors.zip'
+	unzip_folder = '/tmp'
+	unzip_target = unzip_folder + '/res'
+
+	if os.path.isfile(zip_name):
+		os.remove(zip_name)
+
+	url = ACTION_BAR_COLORS_TEMPLATE_URL % (color, theme_name)
+	urllib.urlretrieve(url, zip_name)
+
+	if os.path.isfile(unzip_target):
+		shutil.rmtree(unzip_target)
+	with zipfile.ZipFile(zip_name) as zf:
+		zf.extractall(unzip_folder)
+
+	if os.path.isfile(zip_name):
+		os.remove(zip_name)
+
+	return unzip_target
+
+def get_holo_generator_assets(color, theme_name):
 	zip_name = '/tmp/holo_colors.zip'
 	unzip_folder = '/tmp'
 	unzip_target = unzip_folder + '/res'
@@ -65,6 +87,8 @@ class Config:
 		self.target_sdk = config_json.get('target_sdk')
 		self.min_sdk = config_json.get('min_sdk')
 		self.theme = config_json.get('theme')
+		self.include_action_bar_colors = config_json.get('action_bar_colors')
+		self.include_holo_colors = config_json.get('holo_colors')
 
 		if 'app_drawer' in config_json:
 			drawer_items_array = config_json.get('app_drawer')
@@ -93,7 +117,7 @@ class TemplateWriter():
 			'{compile_sdk_version}' : config.compile_sdk,
 	        '{min_sdk_version}' : config.min_sdk,
 	        '{target_sdk_version}' : config.target_sdk,
-	        '{parent_theme}' : config.theme
+	        '{parent_theme}' : config.theme,
 	        '{color_primary}' : config.colors.primary,
 	        '{color_secondary}' : config.colors.secondary,
 	        '{app_drawer_enum_code}' : "" if config.app_drawer is None else generate_app_drawer_enum_code(config.app_drawer),
@@ -222,15 +246,25 @@ class TemplateWriter():
 		self.__run_replacement()
 
 def generate_action_bar_colors(template, config):
-	holo_colors_folder
+	ab_colors_folder = get_action_bar_color_assets(config.colors.primary.replace('#', ''), config.app_name.lower())
+	if ab_colors_folder:
+		base_folder = template.app_base_folder()
+		base_res_folder = join(base_folder, 'src/main/res')
+
+		for root, dirs, files in os.walk(ab_colors_folder):
+			for d in dirs:
+				if d.startswith('drawable') or d.startswith('values'):
+					folderpath = join(root, d)
+					print folderpath
+					template.copytree(folderpath, join(base_res_folder, d))
+		shutil.rmtree(ab_colors_folder)
 
 def generate_holo_colors(template, config):
-	holo_colors_folder = merge_holo_generator_assets(config.colors.primary.replace('#', ''), config.app_name.lower())
+	holo_colors_folder = get_holo_generator_assets(config.colors.primary.replace('#', ''), config.app_name.lower())
 	if holo_colors_folder:
 		base_folder = template.app_base_folder()
 		base_res_folder = join(base_folder, 'src/main/res')
 
-		resources = {}
 		for root, dirs, files in os.walk(holo_colors_folder):
 			for d in dirs:
 				if d.startswith('drawable') or d.startswith('values'):
@@ -248,9 +282,10 @@ def create_app(config, output_folder = None):
 	template = TemplateWriter(c, output_folder)
 	template.create()
 
-	generate_holo_colors(template, c)
-	generate_action_bar_colors(template, c)
-
+	if c.include_holo_colors:
+		generate_holo_colors(template, c)
+	if c.include_action_bar_colors:
+		generate_action_bar_colors(template, c)
 
 def main():
 	parser = argparse.ArgumentParser(description='Create an Android App skeleton')
